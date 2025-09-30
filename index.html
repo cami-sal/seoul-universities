@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map_3289cc16aef4c94c692fd3ef1c3c4cd9 {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.6.0/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.6.0/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css"/>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        /* Custom Styles for Filters */
+        .filter-control {
+            margin-bottom: 5px;
+        }
+        .filter-control label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            font-weight: normal;
+        }
+        .filter-control input[type="checkbox"] {
+            margin-right: 5px;
+            width: 14px;
+            height: 14px;
+            cursor: pointer;
+        }
+        /* Custom map style for the cluster markers (Celeste/Light Blue) */
+        .marker-cluster-small { 
+            background-color: rgba(66, 153, 225, 0.6) !important; /* Celeste base */
+        }
+        .marker-cluster-small div { 
+            background-color: rgba(66, 153, 225, 0.9) !important; /* Slightly darker fill */
+        }
+        /* Style adjustments to ensure the map div gets full size */
+        #map_3289cc16aef4c94c692fd3ef1c3c4cd9 {
+            position: absolute;
+            width: 100.0%;
+            height: 100.0%;
+            left: 0.0%;
+            top: 0.0%;
+        }
+    </style>
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css"/>
+</head>
+<body>
+<h1 style='font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; margin:16px 16px 0;'>Seoul Universities Map</h1>
+<p style='margin:0 16px 8px;color:#555;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;'>국립·공립·사립 대학 분포 (필터링 가능)</p>
+
+<div id="filter-legend" style="position: fixed; bottom: 20px; left: 20px; z-index: 9999; background: white; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; font-size: 14px;">
+    <b>Filter by type</b><br>
+    <div id="filter-options">
+        <!-- Filter Checkboxes will be inserted here by JavaScript -->
+        <div class="filter-control"><label><input type="checkbox" id="filter-national" data-type="National" checked> <span style="display:inline-block;width:12px;height:12px;background:#2A81CB;margin-right:6px;border-radius:2px;"></span> National</label></div>
+        <div class="filter-control"><label><input type="checkbox" id="filter-public" data-type="Public (Municipal)" checked> <span style="display:inline-block;width:12px;height:12px;background:#28A745;margin-right:6px;border-radius:2px;"></span> Public (Municipal)</label></div>
+        <div class="filter-control"><label><input type="checkbox" id="filter-private" data-type="Private" checked> <span style="display:inline-block;width:12px;height:12px;background:#DC3545;margin-right:6px;border-radius:2px;"></span> Private</label></div>
+    </div>
+</div>
+
+    
+            <div class="folium-map" id="map_3289cc16aef4c94c692fd3ef1c3c4cd9" ></div>
+        
+
+<h2 style="font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;">University List</h2>
+<table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; width: 100%;">
+    <thead style="background:#f5f5f5;">
+        <tr>
+            <th>Type</th>
+            <th>Name (EN)</th>
+            <th>Name (KR)</th>
+            <th>District</th>
+            <th>Address (KR)</th>
+            <th>Coordinates</th>
+        </tr>
+    </thead>
+    <tbody>
+        
+    <tr>
+        <td>National</td>
+        <td>Seoul National University (SNU)</td>
+        <td>서울대학교</td>
+        <td>Gwanak-gu</td>
+        <td>서울특별시 관악구 관악로 1</td>
+        <td>37.4599, 126.9535</td>
+    </tr>
+    
+    <tr>
+        <td>National</td>
+        <td>Seoul Nat'l Univ. of Science and Technology (SeoulTech)</td>
+        <td>서울과학기술대학교</td>
+        <td>Nowon-gu</td>
+        <td>서울특별시 노원구 공릉로 232</td>
+        <td>37.6318, 127.0805</td>
+    </tr>
+    
+    <tr>
+        <td>National</td>
+        <td>Korea National Sport University</td>
+        <td>한국체육대학교</td>
+        <td>Songpa-gu</td>
+        <td>서울특별시 송파구 양재대로 1239</td>
+        <td>37.5186, 127.1332</td>
+    </tr>
+    
+    <tr>
+        <td>National</td>
+        <td>Korea National University of Arts (KNUA)</td>
+        <td>한국예술종합학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 화랑로32길 146-37</td>
+        <td>37.6055, 127.0561</td>
+    </tr>
+    
+    <tr>
+        <td>National</td>
+        <td>Seoul National University of Education</td>
+        <td>서울교육대학교</td>
+        <td>Seocho-gu</td>
+        <td>서울특별시 서초구 서초중앙로 165</td>
+        <td>37.4883, 127.0166</td>
+    </tr>
+    
+    <tr>
+        <td>Public (Municipal)</td>
+        <td>University of Seoul (UOS)</td>
+        <td>서울시립대학교</td>
+        <td>Dongdaemun-gu</td>
+        <td>서울특별시 동대문구 서울시립대로 163</td>
+        <td>37.5843, 127.0583</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Yonsei University</td>
+        <td>연세대학교</td>
+        <td>Seodaemun-gu</td>
+        <td>서울특별시 서대문구 연세로 50</td>
+        <td>37.5645, 126.9388</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Korea University</td>
+        <td>고려대학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 안암로 145</td>
+        <td>37.5902, 127.0256</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sungkyunkwan University</td>
+        <td>성균관대학교</td>
+        <td>Jongno-gu</td>
+        <td>서울특별시 종로구 성균관로 25-2</td>
+        <td>37.5818, 126.9942</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Hanyang University</td>
+        <td>한양대학교</td>
+        <td>Seongdong-gu</td>
+        <td>서울특별시 성동구 왕십리로 222</td>
+        <td>37.5564, 127.0450</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Ewha Womans University</td>
+        <td>이화여자대학교</td>
+        <td>Seodaemun-gu</td>
+        <td>서울특별시 서대문구 이화여대길 52</td>
+        <td>37.5617, 126.9467</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sogang University</td>
+        <td>서강대학교</td>
+        <td>Mapo-gu</td>
+        <td>서울특별시 마포구 백범로 35</td>
+        <td>37.5501, 126.9392</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Chung-Ang University</td>
+        <td>중앙대학교</td>
+        <td>Dongjak-gu</td>
+        <td>서울특별시 동작구 흑석로 84</td>
+        <td>37.5050, 126.9550</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Kyung Hee University</td>
+        <td>경희대학교</td>
+        <td>Dongdaemun-gu</td>
+        <td>서울특별시 동대문구 경희대로 26</td>
+        <td>37.5959, 127.0531</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Hankuk University of Foreign Studies (HUFS)</td>
+        <td>한국외국어대학교</td>
+        <td>Dongdaemun-gu</td>
+        <td>서울특별시 동대문구 이문로 107</td>
+        <td>37.5982, 127.0573</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Konkuk University</td>
+        <td>건국대학교</td>
+        <td>Gwangjin-gu</td>
+        <td>서울특별시 광진구 능동로 120</td>
+        <td>37.5408, 127.0793</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Dongguk University</td>
+        <td>동국대학교</td>
+        <td>Jung-gu</td>
+        <td>서울특별시 중구 필동로1길 30</td>
+        <td>37.5583, 127.0006</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Hongik University</td>
+        <td>홍익대학교</td>
+        <td>Mapo-gu</td>
+        <td>서울특별시 마포구 와우산로 94</td>
+        <td>37.5517, 126.9248</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Soongsil University</td>
+        <td>숭실대학교</td>
+        <td>Dongjak-gu</td>
+        <td>서울특별시 동작구 상도로 369</td>
+        <td>37.4950, 126.9575</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sejong University</td>
+        <td>세종대학교</td>
+        <td>Gwangjin-gu</td>
+        <td>서울특별시 광진구 능동로 209</td>
+        <td>37.5504, 127.0732</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Kookmin University</td>
+        <td>국민대학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 정릉로 77</td>
+        <td>37.6094, 126.9942</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sungshin Women's University</td>
+        <td>성신여자대학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 보문로34길 2</td>
+        <td>37.5916, 127.0201</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sookmyung Women's University</td>
+        <td>숙명여자대학교</td>
+        <td>Yongsan-gu</td>
+        <td>서울특별시 용산구 청파로47길 100</td>
+        <td>37.5463, 126.9649</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Catholic University of Korea (Songsin Campus)</td>
+        <td>가톨릭대학교 (성신캠퍼스)</td>
+        <td>Jongno-gu</td>
+        <td>서울특별시 종로구 창경궁로 297</td>
+        <td>37.5859, 127.0043</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Kwangwoon University</td>
+        <td>광운대학교</td>
+        <td>Nowon-gu</td>
+        <td>서울특별시 노원구 광운로 20</td>
+        <td>37.6186, 127.0601</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Myongji University (Social Science Campus)</td>
+        <td>명지대학교 (인문캠퍼스)</td>
+        <td>Seodaemun-gu</td>
+        <td>서울특별시 서대문구 거북골로 34</td>
+        <td>37.5828, 126.9240</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Duksung Women's University</td>
+        <td>덕성여자대학교</td>
+        <td>Dobong-gu</td>
+        <td>서울특별시 도봉구 삼양로144길 33</td>
+        <td>37.6534, 127.0204</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Dongduk Women's University</td>
+        <td>동덕여자대학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 화랑로13길 60</td>
+        <td>37.6062, 127.0560</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Hansung University</td>
+        <td>한성대학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 삼선교로16길 116</td>
+        <td>37.5888, 127.0084</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sangmyung University (Seoul Campus)</td>
+        <td>상명대학교 (서울캠퍼스)</td>
+        <td>Jongno-gu</td>
+        <td>서울특별시 종로구 홍지문2길 20</td>
+        <td>37.6033, 126.9632</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Seokyeong University</td>
+        <td>서경대학교</td>
+        <td>Seongbuk-gu</td>
+        <td>서울특별시 성북구 서경로 124</td>
+        <td>37.6148, 127.0125</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Seoul Women's University (SWU)</td>
+        <td>서울여자대학교</td>
+        <td>Nowon-gu</td>
+        <td>서울특별시 노원구 화랑로 621</td>
+        <td>37.6277, 127.1030</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sahmyook University</td>
+        <td>삼육대학교</td>
+        <td>Nowon-gu</td>
+        <td>서울특별시 노원구 화랑로 815</td>
+        <td>37.6534, 127.1054</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Chugye University for the Arts</td>
+        <td>추계예술대학교</td>
+        <td>Seodaemun-gu</td>
+        <td>서울특별시 서대문구 북아현로 11가길 7</td>
+        <td>37.5684, 126.9587</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Sungkonghoe University</td>
+        <td>성공회대학교</td>
+        <td>Guro-gu</td>
+        <td>서울특별시 구로구 연동로 320</td>
+        <td>37.4897, 126.8173</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Chongshin University</td>
+        <td>총신대학교</td>
+        <td>Dongjak-gu</td>
+        <td>서울특별시 동작구 사당로 143</td>
+        <td>37.4939, 126.9749</td>
+    </tr>
+    
+    <tr>
+        <td>Private</td>
+        <td>Presbyterian University and Theological Seminary</td>
+        <td>장로회신학대학교</td>
+        <td>Gwangjin-gu</td>
+        <td>서울특별시 광진구 광장로5길 25-15</td>
+        <td>37.5552, 127.1023</td>
+    </tr>
+    
+    </tbody>
+</table>
+<p style="font-size:12px;color:#666;">Tip: 지도를 확대/이동해서 군집(Cluster)을 클릭하면 개별 대학 마커가 보입니다.</p>
+
+</body>
+<script>
+    
+    // Define university types and their corresponding colors (using Folium/Awesome Markers defaults)
+    const TYPE_COLORS = {
+        "National": "blue",
+        "Public (Municipal)": "green",
+        "Private": "red"
+    };
+
+    // Store all markers for filtering logic
+    const allMarkers = [];
+
+    // Map object ID (used throughout the Folium-generated JS)
+    const mapId = "map_3289cc16aef4c94c692fd3ef1c3c4cd9";
+    const markerClusterId = "marker_cluster_9100baefed10dfdadfb266925e9fc39b";
+    
+    // Helper function to get marker color based on type
+    function getMarkerColor(type) {
+        return TYPE_COLORS[type] || 'gray';
+    }
+
+    // --- Filter Logic ---
+    function updateMapFilters() {
+        const checkedTypes = new Set();
+        document.querySelectorAll('#filter-options input[type="checkbox"]:checked').forEach(checkbox => {
+            checkedTypes.add(checkbox.dataset.type);
+        });
+
+        // Clear existing markers from the cluster group
+        window[markerClusterId].clearLayers();
+
+        // Add back only the visible markers
+        allMarkers.forEach(marker => {
+            if (checkedTypes.has(marker._university_type)) {
+                window[markerClusterId].addLayer(marker);
+            }
+        });
+    }
+
+    // --- Initialization (Copied from original HTML and modified) ---
+    $(document).ready(function() {
+        // Map Initialization
+        var map_obj = L.map(
+            mapId,
+            {
+                center: [37.5665, 126.978],
+                crs: L.CRS.EPSG3857,
+                zoom: 11,
+                zoomControl: true,
+                preferCanvas: false,
+            }
+        );
+        window[mapId] = map_obj;
+
+        // Tile Layer (CartoDB Light)
+        var tile_layer = L.tileLayer(
+            "https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png",
+            {"attribution": "&copy; <a href=\"http://www.openstreetmap.org/copyright\">OpenStreetMap</a> contributors &copy; <a href=\"http://cartodb.com/attributions\">CartoDB</a>, CartoDB <a href =\"http://cartodb.com/attributions\">attributions</a>", "detectRetina": false, "maxNativeZoom": 18, "maxZoom": 18, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+        ).addTo(map_obj);
+        
+        // Marker Cluster Initialization
+        var marker_cluster_obj = L.markerClusterGroup(
+            {
+                // Custom icon for the clusters (the big numbers) - now uniformly celeste
+                iconCreateFunction: function(cluster) {
+                    const count = cluster.getChildCount();
+                    // Using default Folium cluster sizes, but forcing a celeste look
+                    let size = 'small';
+                    if (count > 20) size = 'medium';
+                    if (count > 100) size = 'large';
+                    
+                    const backgroundColor = '#4299e1'; // Celeste/Light Blue
+
+                    return new L.DivIcon({ 
+                        html: `<div style="background-color: ${backgroundColor};" class="marker-cluster-${size} w-full h-full flex items-center justify-center font-bold text-white">${count}</div>`,
+                        className: `marker-cluster marker-cluster-${size}`,
+                        iconSize: [40, 40]
+                    });
+                }
+            }
+        );
+        window[markerClusterId] = marker_cluster_obj;
+        map_obj.addLayer(marker_cluster_obj);
+
+        // University Data (Extracted from the table for re-use)
+        const universityData = [
+            // National
+            { name: "Seoul National University (SNU)", name_kr: "서울대학교", type: "National", district: "Gwanak-gu", address_kr: "서울특별시 관악구 관악로 1", lat: 37.4599, lon: 126.9535 },
+            { name: "Seoul Nat'l Univ. of Science and Technology (SeoulTech)", name_kr: "서울과학기술대학교", type: "National", district: "Nowon-gu", address_kr: "서울특별시 노원구 공릉로 232", lat: 37.6318, lon: 127.0805 },
+            { name: "Korea National Sport University", name_kr: "한국체육대학교", type: "National", district: "Songpa-gu", address_kr: "서울특별시 송파구 양재대로 1239", lat: 37.5186, lon: 127.1332 },
+            { name: "Korea National University of Arts (KNUA)", name_kr: "한국예술종합학교", type: "National", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 화랑로32길 146-37", lat: 37.6055, lon: 127.0561 },
+            { name: "Seoul National University of Education", name_kr: "서울교육대학교", type: "National", district: "Seocho-gu", address_kr: "서울특별시 서초구 서초중앙로 165", lat: 37.4883, lon: 127.0166 },
+            
+            // Public (Municipal)
+            { name: "University of Seoul (UOS)", name_kr: "서울시립대학교", type: "Public (Municipal)", district: "Dongdaemun-gu", address_kr: "서울특별시 동대문구 서울시립대로 163", lat: 37.5843, lon: 127.0583 },
+            
+            // Private
+            { name: "Yonsei University", name_kr: "연세대학교", type: "Private", district: "Seodaemun-gu", address_kr: "서울특별시 서대문구 연세로 50", lat: 37.5645, lon: 126.9388 },
+            { name: "Korea University", name_kr: "고려대학교", type: "Private", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 안암로 145", lat: 37.5902, lon: 127.0256 },
+            { name: "Sungkyunkwan University", name_kr: "성균관대학교", type: "Private", district: "Jongno-gu", address_kr: "서울특별시 종로구 성균관로 25-2", lat: 37.5818, lon: 126.9942 },
+            { name: "Hanyang University", name_kr: "한양대학교", type: "Private", district: "Seongdong-gu", address_kr: "서울특별시 성동구 왕십리로 222", lat: 37.5564, lon: 127.0450 },
+            { name: "Ewha Womans University", name_kr: "이화여자대학교", type: "Private", district: "Seodaemun-gu", address_kr: "서울특별시 서대문구 이화여대길 52", lat: 37.5617, lon: 126.9467 },
+            { name: "Sogang University", name_kr: "서강대학교", type: "Private", district: "Mapo-gu", address_kr: "서울특별시 마포구 백범로 35", lat: 37.5501, lon: 126.9392 },
+            { name: "Chung-Ang University", name_kr: "중앙대학교", type: "Private", district: "Dongjak-gu", address_kr: "서울특별시 동작구 흑석로 84", lat: 37.5050, lon: 126.9550 },
+            { name: "Kyung Hee University", name_kr: "경희대학교", type: "Private", district: "Dongdaemun-gu", address_kr: "서울특별시 동대문구 경희대로 26", lat: 37.5959, lon: 127.0531 },
+            { name: "Hankuk University of Foreign Studies (HUFS)", name_kr: "한국외국어대학교", type: "Private", district: "Dongdaemun-gu", address_kr: "서울특별시 동대문구 이문로 107", lat: 37.5982, lon: 127.0573 },
+            { name: "Konkuk University", name_kr: "건국대학교", type: "Private", district: "Gwangjin-gu", address_kr: "서울특별시 광진구 능동로 120", lat: 37.5408, lon: 127.0793 },
+            { name: "Dongguk University", name_kr: "동국대학교", type: "Private", district: "Jung-gu", address_kr: "서울특별시 중구 필동로1길 30", lat: 37.5583, lon: 127.0006 },
+            { name: "Hongik University", name_kr: "홍익대학교", type: "Private", district: "Mapo-gu", address_kr: "서울특별시 마포구 와우산로 94", lat: 37.5517, lon: 126.9248 },
+            { name: "Soongsil University", name_kr: "숭실대학교", type: "Private", district: "Dongjak-gu", address_kr: "서울특별시 동작구 상도로 369", lat: 37.4950, lon: 126.9575 },
+            { name: "Sejong University", name_kr: "세종대학교", type: "Private", district: "Gwangjin-gu", address_kr: "서울특별시 광진구 능동로 209", lat: 37.5504, lon: 127.0732 },
+            { name: "Kookmin University", name_kr: "국민대학교", type: "Private", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 정릉로 77", lat: 37.6094, lon: 126.9942 },
+            { name: "Sungshin Women's University", name_kr: "성신여자대학교", type: "Private", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 보문로34길 2", lat: 37.5916, lon: 127.0201 },
+            { name: "Sookmyung Women's University", name_kr: "숙명여자대학교", type: "Private", district: "Yongsan-gu", address_kr: "서울특별시 용산구 청파로47길 100", lat: 37.5463, lon: 126.9649 },
+            { name: "Catholic University of Korea (Songsin Campus)", name_kr: "가톨릭대학교 (성신캠퍼스)", type: "Private", district: "Jongno-gu", address_kr: "서울특별시 종로구 창경궁로 297", lat: 37.5859, lon: 127.0043 },
+            { name: "Kwangwoon University", name_kr: "광운대학교", type: "Private", district: "Nowon-gu", address_kr: "서울특별시 노원구 광운로 20", lat: 37.6186, lon: 127.0601 },
+            { name: "Myongji University (Social Science Campus)", name_kr: "명지대학교 (인문캠퍼스)", type: "Private", district: "Seodaemun-gu", address_kr: "서울특별시 서대문구 거북골로 34", lat: 37.5828, lon: 126.9240 },
+            { name: "Duksung Women's University", name_kr: "덕성여자대학교", type: "Private", district: "Dobong-gu", address_kr: "서울특별시 도봉구 삼양로144길 33", lat: 37.6534, lon: 127.0204 },
+            { name: "Dongduk Women's University", name_kr: "동덕여자대학교", type: "Private", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 화랑로13길 60", lat: 37.6062, lon: 127.0560 },
+            { name: "Hansung University", name_kr: "한성대학교", type: "Private", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 삼선교로16길 116", lat: 37.5888, lon: 127.0084 },
+            { name: "Sangmyung University (Seoul Campus)", name_kr: "상명대학교 (서울캠퍼스)", type: "Private", district: "Jongno-gu", address_kr: "서울특별시 종로구 홍지문2길 20", lat: 37.6033, lon: 126.9632 },
+            { name: "Seokyeong University", name_kr: "서경대학교", type: "Private", district: "Seongbuk-gu", address_kr: "서울특별시 성북구 서경로 124", lat: 37.6148, lon: 127.0125 },
+            { name: "Seoul Women's University (SWU)", name_kr: "서울여자대학교", type: "Private", district: "Nowon-gu", address_kr: "서울특별시 노원구 화랑로 621", lat: 37.6277, lon: 127.1030 },
+            { name: "Sahmyook University", name_kr: "삼육대학교", type: "Private", district: "Nowon-gu", address_kr: "서울특별시 노원구 화랑로 815", lat: 37.6534, lon: 127.1054 },
+            { name: "Chugye University for the Arts", name_kr: "추계예술대학교", type: "Private", district: "Seodaemun-gu", address_kr: "서울특별시 서대문구 북아현로 11가길 7", lat: 37.5684, lon: 126.9587 },
+            { name: "Sungkonghoe University", name_kr: "성공회대학교", type: "Private", district: "Guro-gu", address_kr: "서울특별시 구로구 연동로 320", lat: 37.4897, lon: 126.8173 },
+            { name: "Chongshin University", name_kr: "총신대학교", type: "Private", district: "Dongjak-gu", address_kr: "서울특별시 동작구 사당로 143", lat: 37.4939, lon: 126.9749 },
+            { name: "Presbyterian University and Theological Seminary", name_kr: "장로회신학대학교", type: "Private", district: "Gwangjin-gu", address_kr: "서울특별시 광진구 광장로5길 25-15", lat: 37.5552, lon: 127.1023 }
+        ];
+
+        // Process data and create markers
+        universityData.forEach(data => {
+            const markerColor = getMarkerColor(data.type);
+            const popupContent = `
+                <div style="font-family: system-ui; padding: 4px;">
+                    <div style="font-size: 16px; font-weight: bold; margin-bottom: 4px;">
+                        ${data.name} <span style="font-size:12px; color:#555;">(${data.name_kr})</span>
+                    </div>
+                    <div style="font-size: 12px; margin-bottom: 4px;">
+                        <b>Type:</b> <span style="font-weight: normal; color: ${markerColor};">${data.type}</span>
+                    </div>
+                    <hr style="border-top: 1px solid #eee; margin: 6px 0;">
+                    <div style="font-size: 12px;">
+                        <b>District:</b> ${data.district}<br>
+                        <b>Address (KR):</b> ${data.address_kr}
+                    </div>
+                    <div style="margin-top: 8px;">
+                        <a href="https://map.naver.com/p/search/${data.lat},${data.lon}" target="_blank" 
+                           style="display: inline-block; padding: 4px 8px; background-color: #28A745; color: white; text-decoration: none; border-radius: 4px; font-size: 12px;">
+                           View in Naver Maps
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            var icon = L.AwesomeMarkers.icon({
+                "extraClasses": "fa-rotate-0",
+                "icon": "graduation-cap", // Changed icon
+                "iconColor": "white",
+                "markerColor": markerColor, // Dynamic color
+                "prefix": "fa"
+            });
+            
+            var marker = L.marker(
+                [data.lat, data.lon],
+                { icon: icon }
+            );
+
+            // Custom property to store the type for filtering
+            marker._university_type = data.type; 
+
+            var popup = L.popup({"maxWidth": 300});
+            var html = $(popupContent)[0];
+            popup.setContent(html);
+            marker.bindPopup(popup);
+            
+            // Add Tooltip (Hover text)
+            marker.bindTooltip(
+                `<div>${data.name}</div>`,
+                {"sticky": true}
+            );
+
+            allMarkers.push(marker);
+            marker_cluster_obj.addLayer(marker);
+        });
+
+        // Add event listener to filter controls
+        document.getElementById('filter-legend').addEventListener('change', updateMapFilters);
+    });
+
+</script>
+</html>
